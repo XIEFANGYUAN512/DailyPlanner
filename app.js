@@ -7,7 +7,8 @@ const dateInput = document.querySelector("#dateInput");
 const timeInput = document.querySelector("#timeInput");
 const titleInput = document.querySelector("#titleInput");
 const typeInput = document.querySelector("#typeInput");
-const typeOptions = document.querySelector("#typeOptions");
+const customTypeField = document.querySelector("#customTypeField");
+const customTypeInput = document.querySelector("#customTypeInput");
 const filterDate = document.querySelector("#filterDate");
 const showTodayBtn = document.querySelector("#showTodayBtn");
 const clearDoneBtn = document.querySelector("#clearDoneBtn");
@@ -130,12 +131,35 @@ function syncTypeOptions() {
 }
 
 function renderTypeOptions() {
-  typeOptions.innerHTML = "";
+  const previous = typeInput.value;
+  typeInput.innerHTML = "";
   typeOptionList.forEach((value) => {
     const option = document.createElement("option");
     option.value = value;
-    typeOptions.appendChild(option);
+    option.textContent = value;
+    typeInput.appendChild(option);
   });
+  const customOption = document.createElement("option");
+  customOption.value = "__custom__";
+  customOption.textContent = "自定义...";
+  typeInput.appendChild(customOption);
+
+  if (previous && previous !== "__custom__" && typeOptionList.includes(previous)) {
+    typeInput.value = previous;
+  } else if (previous !== "__custom__") {
+    typeInput.value = typeOptionList[0] || "工作";
+  }
+  toggleCustomTypeField();
+}
+
+function toggleCustomTypeField() {
+  const isCustom = typeInput.value === "__custom__";
+  customTypeField.hidden = !isCustom;
+  if (isCustom) {
+    customTypeInput.focus();
+  } else {
+    customTypeInput.value = "";
+  }
 }
 
 function saveSchedules() {
@@ -304,7 +328,15 @@ function parseDate(dateString) {
 function addSchedule(event) {
   event.preventDefault();
 
-  const customType = typeInput.value.trim() || "其他";
+  let chosenType = typeInput.value;
+  if (chosenType === "__custom__") {
+    chosenType = customTypeInput.value.trim();
+    if (!chosenType) {
+      customTypeInput.focus();
+      return;
+    }
+  }
+  const finalType = chosenType || "其他";
 
   const newItem = {
     id: crypto.randomUUID(),
@@ -312,23 +344,24 @@ function addSchedule(event) {
     time: timeInput.value,
     title: titleInput.value.trim(),
     note: "",
-    type: customType,
+    type: finalType,
     done: false,
   };
 
   schedules.push(newItem);
-  if (!typeOptionList.includes(customType)) {
-    typeOptionList.push(customType);
-    renderTypeOptions();
+  if (!typeOptionList.includes(finalType)) {
+    typeOptionList.push(finalType);
     saveTypeOptions();
   }
+  renderTypeOptions();
   saveSchedules();
   filterDate.value = newItem.date;
   selectedMonth = parseDate(newItem.date);
   form.reset();
   dateInput.value = newItem.date;
   timeInput.value = newItem.time;
-  typeInput.value = customType;
+  typeInput.value = finalType;
+  toggleCustomTypeField();
   titleInput.focus();
   renderSchedules();
 }
@@ -412,6 +445,7 @@ function mergeSchedules(current, incoming) {
 }
 
 form.addEventListener("submit", addSchedule);
+typeInput.addEventListener("change", toggleCustomTypeField);
 filterDate.addEventListener("change", () => {
   selectedMonth = parseDate(filterDate.value || today);
   renderSchedules();

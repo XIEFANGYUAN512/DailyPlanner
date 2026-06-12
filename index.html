@@ -37,14 +37,18 @@
           </label>
           <label>
             类型
-            <input id="typeInput" type="text" maxlength="12" list="typeOptions" placeholder="可选择或自定义" value="工作" required />
-            <datalist id="typeOptions">
-              <option value="工作"></option>
-              <option value="学习"></option>
-              <option value="生活"></option>
-              <option value="健康"></option>
-              <option value="其他"></option>
-            </datalist>
+            <select id="typeInput">
+              <option value="工作">工作</option>
+              <option value="学习">学习</option>
+              <option value="生活">生活</option>
+              <option value="健康">健康</option>
+              <option value="其他">其他</option>
+              <option value="__custom__">自定义...</option>
+            </select>
+          </label>
+          <label id="customTypeField" class="custom-type-field" hidden>
+            自定义类型
+            <input id="customTypeInput" type="text" maxlength="12" placeholder="输入新类型名称" />
           </label>
           <button type="submit">添加日程</button>
         </form>
