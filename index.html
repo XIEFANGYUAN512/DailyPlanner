@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的每日程</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Daily Planner</p>
+          <h1>我的每日程</h1>
+          <p class="hero-text">记录今天要做的事，按时间安排，完成后打勾，帮你保持一天清晰有序。</p>
+        </div>
+        <div class="date-card">
+          <span id="weekday">星期</span>
+          <strong id="todayText">今天</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <form id="scheduleForm" class="schedule-form">
+          <label>
+            日期
+            <input id="dateInput" type="date" required />
+          </label>
+          <label>
+            时间
+            <input id="timeInput" type="time" required />
+          </label>
+          <label class="title-field">
+            日程内容
+            <input id="titleInput" type="text" maxlength="60" placeholder="例如：晨跑、项目会议、读书 30 分钟" required />
+          </label>
+          <label>
+            类型
+            <select id="typeInput">
+              <option value="工作">工作</option>
+              <option value="学习">学习</option>
+              <option value="生活">生活</option>
+              <option value="健康">健康</option>
+              <option value="其他">其他</option>
+            </select>
+          </label>
+          <button type="submit">添加日程</button>
+        </form>
+      </section>
+
+      <section class="toolbar">
+        <div>
+          <label for="filterDate">查看日期</label>
+          <input id="filterDate" type="date" />
+        </div>
+        <button id="showTodayBtn" class="ghost">回到今天</button>
+        <button id="clearDoneBtn" class="ghost danger">清除已完成</button>
+      </section>
+
+      <section class="stats" aria-label="日程统计">
+        <article>
+          <span id="totalCount">0</span>
+          <p>全部日程</p>
+        </article>
+        <article>
+          <span id="doneCount">0</span>
+          <p>已完成</p>
+        </article>
+        <article>
+          <span id="pendingCount">0</span>
+          <p>待完成</p>
+        </article>
+      </section>
+
+      <section class="schedule-list" aria-live="polite">
+        <div class="list-header">
+          <h2>当日日程</h2>
+          <p id="listHint">按时间从早到晚排列</p>
+        </div>
+        <div id="itemsContainer" class="items"></div>
+      </section>
+    </main>
+
+    <template id="emptyTemplate">
+      <div class="empty-state">
+        <div class="empty-icon">☀</div>
+        <h3>这一天还没有日程</h3>
+        <p>添加第一条安排，让今天更有方向。</p>
+      </div>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
