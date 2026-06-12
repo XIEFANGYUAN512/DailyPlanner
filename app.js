@@ -29,7 +29,7 @@ const listHint = document.querySelector("#listHint");
 const weekday = document.querySelector("#weekday");
 const todayText = document.querySelector("#todayText");
 
-const DEFAULT_TYPES = ["工作", "学习", "生活", "健康", "其他"];
+const DEFAULT_TYPES = ["工作", "学习", "生活", "健康"];
 
 const formatDate = (date) => {
   const year = date.getFullYear();
@@ -98,7 +98,7 @@ function normalizeSchedules(data) {
       time: item.time,
       title: item.title,
       note: item.note || "",
-      type: (item.type || "其他").trim() || "其他",
+      type: (item.type || "工作").trim() || "工作",
       done: Boolean(item.done),
     }));
 }
@@ -122,7 +122,7 @@ function saveTypeOptions() {
 function syncTypeOptions() {
   const fromSchedules = schedules
     .map((item) => (item.type || "").trim())
-    .filter(Boolean);
+    .filter((type) => type && type !== "其他");
   typeOptionList = Array.from(
     new Set([...DEFAULT_TYPES, ...typeOptionList, ...fromSchedules])
   );
@@ -336,7 +336,7 @@ function addSchedule(event) {
       return;
     }
   }
-  const finalType = chosenType || "其他";
+  const finalType = chosenType || "工作";
 
   const newItem = {
     id: crypto.randomUUID(),
