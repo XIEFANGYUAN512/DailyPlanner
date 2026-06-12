@@ -2,6 +2,7 @@
   color-scheme: light;
   --bg: #f5f7fb;
   --card: rgba(255, 255, 255, 0.88);
+  --surface: #ffffff;
   --text: #182033;
   --muted: #6d7485;
   --primary: #5b6cff;
@@ -10,6 +11,21 @@
   --success: #21a67a;
   --danger: #ef5b5b;
   --shadow: 0 22px 70px rgba(34, 42, 72, 0.12);
+}
+
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #101421;
+  --card: rgba(25, 31, 49, 0.9);
+  --surface: #1a2033;
+  --text: #eef2ff;
+  --muted: #a8b0c5;
+  --primary: #8d98ff;
+  --primary-dark: #7380ff;
+  --line: #30384f;
+  --success: #36c99a;
+  --danger: #ff7474;
+  --shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -75,7 +91,9 @@ h1 {
 .panel,
 .toolbar,
 .stats article,
-.schedule-list {
+.schedule-list,
+.tool-card,
+.calendar-panel {
   border: 1px solid rgba(255, 255, 255, 0.72);
   background: var(--card);
   box-shadow: var(--shadow);
@@ -102,7 +120,9 @@ h1 {
 
 .panel,
 .toolbar,
-.schedule-list {
+.schedule-list,
+.tool-card,
+.calendar-panel {
   border-radius: 28px;
 }
 
@@ -132,7 +152,7 @@ select {
   border: 1px solid var(--line);
   border-radius: 16px;
   color: var(--text);
-  background: #fff;
+  background: var(--surface);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -188,15 +208,160 @@ button:hover {
   width: 180px;
 }
 
+.toolbar .search-box {
+  flex: 1;
+  min-width: 240px;
+}
+
 .ghost {
   color: var(--text);
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
 }
 
 .ghost:hover {
   color: var(--primary);
-  background: #fff;
+  background: var(--surface);
+}
+
+.theme-toggle {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(360px, 1.2fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.tool-card {
+  padding: 20px;
+}
+
+.tool-card h2,
+.calendar-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.tool-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.tool-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.sync-card {
+  display: grid;
+  gap: 14px;
+}
+
+.sync-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.token-field {
+  grid-column: 1 / -1;
+}
+
+.sync-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.sync-status.error {
+  color: var(--danger);
+}
+
+.calendar-panel {
+  margin-bottom: 18px;
+  padding: 22px;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.calendar-weekdays {
+  margin-bottom: 10px;
+}
+
+.calendar-weekdays span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.calendar-day {
+  height: auto;
+  min-height: 92px;
+  padding: 12px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  color: var(--text);
+  background: var(--surface);
+  text-align: left;
+}
+
+.calendar-day:hover {
+  background: rgba(91, 108, 255, 0.08);
+  box-shadow: none;
+}
+
+.calendar-day strong {
+  font-size: 18px;
+}
+
+.calendar-day span,
+.calendar-day small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.calendar-day.today {
+  border-color: var(--primary);
+}
+
+.calendar-day.selected {
+  color: #fff;
+  background: var(--primary);
+}
+
+.calendar-day.selected span,
+.calendar-day.selected small {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.calendar-day.empty {
+  visibility: hidden;
+  cursor: default;
 }
 
 .danger {
@@ -260,7 +425,7 @@ button:hover {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 22px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .schedule-item.done .item-time,
@@ -295,7 +460,7 @@ button:hover {
 .item-note-editor {
   min-height: 76px;
   margin: 0 0 10px;
-  background: #fbfcff;
+  background: var(--bg);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -362,6 +527,8 @@ button:hover {
 @media (max-width: 900px) {
   .hero,
   .schedule-form,
+  .tools-grid,
+  .sync-form,
   .stats {
     grid-template-columns: 1fr;
   }
@@ -372,6 +539,17 @@ button:hover {
 
   .toolbar > div {
     width: 100%;
+  }
+
+  .calendar-weekdays,
+  .calendar-grid {
+    gap: 6px;
+  }
+
+  .calendar-day {
+    min-height: 74px;
+    padding: 9px;
+    border-radius: 14px;
   }
 
   .schedule-item {
