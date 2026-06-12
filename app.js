@@ -32,6 +32,7 @@ const emptyTemplate = document.querySelector("#emptyTemplate");
 const totalCount = document.querySelector("#totalCount");
 const doneCount = document.querySelector("#doneCount");
 const pendingCount = document.querySelector("#pendingCount");
+const listHint = document.querySelector("#listHint");
 const weekday = document.querySelector("#weekday");
 const todayText = document.querySelector("#todayText");
 
@@ -158,9 +159,11 @@ function saveSyncSettings() {
 function getVisibleSchedules() {
   const selectedDate = filterDate.value || today;
   const keyword = searchInput.value.trim().toLowerCase();
+  const source = keyword
+    ? schedules
+    : schedules.filter((item) => item.date === selectedDate);
 
-  return schedules
-    .filter((item) => item.date === selectedDate)
+  return source
     .filter((item) => {
       if (!keyword) return true;
       return [item.title, item.note, item.type, item.date, item.time]
@@ -168,12 +171,16 @@ function getVisibleSchedules() {
         .toLowerCase()
         .includes(keyword);
     })
-    .sort((a, b) => a.time.localeCompare(b.time));
+    .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
 }
 
 function renderSchedules() {
   const filtered = getVisibleSchedules();
+  const keyword = searchInput.value.trim();
   itemsContainer.innerHTML = "";
+  listHint.textContent = keyword
+    ? `搜索结果：已在全部日期中查找“${keyword}”`
+    : "按时间从早到晚排列";
 
   if (!filtered.length) {
     itemsContainer.appendChild(emptyTemplate.content.cloneNode(true));
@@ -198,6 +205,11 @@ function createScheduleItem(item) {
   const time = document.createElement("div");
   time.className = "item-time";
   time.textContent = item.time;
+
+  const dateMeta = document.createElement("span");
+  dateMeta.className = "item-date";
+  dateMeta.textContent = item.date;
+  time.appendChild(dateMeta);
 
   const content = document.createElement("div");
   const title = document.createElement("p");

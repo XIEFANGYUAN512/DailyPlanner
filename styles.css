@@ -444,6 +444,14 @@ button:hover {
   font-weight: 900;
 }
 
+.item-date {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .item-title {
   margin: 0 0 8px;
   font-size: 17px;
