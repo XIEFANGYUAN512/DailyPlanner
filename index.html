@@ -37,13 +37,14 @@
           </label>
           <label>
             类型
-            <select id="typeInput">
-              <option value="工作">工作</option>
-              <option value="学习">学习</option>
-              <option value="生活">生活</option>
-              <option value="健康">健康</option>
-              <option value="其他">其他</option>
-            </select>
+            <input id="typeInput" type="text" maxlength="12" list="typeOptions" placeholder="可选择或自定义" value="工作" required />
+            <datalist id="typeOptions">
+              <option value="工作"></option>
+              <option value="学习"></option>
+              <option value="生活"></option>
+              <option value="健康"></option>
+              <option value="其他"></option>
+            </datalist>
           </label>
           <button type="submit">添加日程</button>
         </form>
@@ -54,78 +55,11 @@
           <label for="filterDate">查看日期</label>
           <input id="filterDate" type="date" />
         </div>
-        <div class="search-box">
-          <label for="searchInput">关键词搜索</label>
-          <input id="searchInput" type="search" placeholder="搜索内容、备注或类型" />
-        </div>
         <button id="showTodayBtn" class="ghost">回到今天</button>
         <button id="clearDoneBtn" class="ghost danger">清除已完成</button>
-      </section>
-
-      <section class="tools-grid">
-        <article class="tool-card">
-          <div>
-            <h2>导入与导出</h2>
-            <p>将当前日程导出为 JSON 文件，或从 JSON 文件恢复日程数据。</p>
-          </div>
-          <div class="tool-actions">
-            <button id="exportBtn" type="button">导出日程</button>
-            <button id="importBtn" class="ghost" type="button">导入日程</button>
-            <input id="importFile" type="file" accept="application/json,.json" hidden />
-          </div>
-        </article>
-
-        <article class="tool-card sync-card">
-          <div>
-            <h2>GitHub 数据同步</h2>
-            <p>把日程数据保存到你的 GitHub 仓库文件中，或从仓库文件拉取数据。</p>
-          </div>
-          <div class="sync-form">
-            <label>
-              仓库 Owner
-              <input id="githubOwner" type="text" placeholder="例如：XIEFANGYUAN512" />
-            </label>
-            <label>
-              仓库名
-              <input id="githubRepo" type="text" placeholder="例如：DailyPlanner" />
-            </label>
-            <label>
-              分支
-              <input id="githubBranch" type="text" value="main" />
-            </label>
-            <label>
-              数据文件路径
-              <input id="githubPath" type="text" value="dailyplanner-data.json" />
-            </label>
-            <label class="token-field">
-              GitHub Token
-              <input id="githubToken" type="password" placeholder="仅用于本次页面会话，不写入代码" />
-            </label>
-          </div>
-          <div class="tool-actions">
-            <button id="pushCloudBtn" type="button">上传到 GitHub</button>
-            <button id="pullCloudBtn" class="ghost" type="button">从 GitHub 拉取</button>
-          </div>
-          <p id="syncStatus" class="sync-status">填写仓库信息和 Token 后，可手动同步日程数据。</p>
-        </article>
-      </section>
-
-      <section class="calendar-panel">
-        <div class="calendar-header">
-          <button id="prevMonthBtn" class="ghost" type="button">上个月</button>
-          <h2 id="calendarTitle">月份</h2>
-          <button id="nextMonthBtn" class="ghost" type="button">下个月</button>
-        </div>
-        <div class="calendar-weekdays" aria-hidden="true">
-          <span>一</span>
-          <span>二</span>
-          <span>三</span>
-          <span>四</span>
-          <span>五</span>
-          <span>六</span>
-          <span>日</span>
-        </div>
-        <div id="calendarGrid" class="calendar-grid" aria-label="日历视图"></div>
+        <button id="exportBtn" class="ghost" type="button">导出日程</button>
+        <button id="importBtn" class="ghost" type="button">导入日程</button>
+        <input id="importFile" type="file" accept="application/json,.json" hidden />
       </section>
 
       <section class="stats" aria-label="日程统计">
@@ -149,6 +83,24 @@
           <p id="listHint">按时间从早到晚排列</p>
         </div>
         <div id="itemsContainer" class="items"></div>
+      </section>
+
+      <section class="calendar-panel">
+        <div class="calendar-header">
+          <button id="prevMonthBtn" class="ghost" type="button">上个月</button>
+          <h2 id="calendarTitle">月份</h2>
+          <button id="nextMonthBtn" class="ghost" type="button">下个月</button>
+        </div>
+        <div class="calendar-weekdays" aria-hidden="true">
+          <span>一</span>
+          <span>二</span>
+          <span>三</span>
+          <span>四</span>
+          <span>五</span>
+          <span>六</span>
+          <span>日</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid" aria-label="日历视图"></div>
       </section>
     </main>
 

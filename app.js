@@ -1,28 +1,20 @@
 const STORAGE_KEY = "daily-schedule-items";
 const THEME_KEY = "daily-schedule-theme";
-const SYNC_SETTINGS_KEY = "daily-schedule-sync-settings";
+const TYPE_OPTIONS_KEY = "daily-schedule-type-options";
 
 const form = document.querySelector("#scheduleForm");
 const dateInput = document.querySelector("#dateInput");
 const timeInput = document.querySelector("#timeInput");
 const titleInput = document.querySelector("#titleInput");
 const typeInput = document.querySelector("#typeInput");
+const typeOptions = document.querySelector("#typeOptions");
 const filterDate = document.querySelector("#filterDate");
-const searchInput = document.querySelector("#searchInput");
 const showTodayBtn = document.querySelector("#showTodayBtn");
 const clearDoneBtn = document.querySelector("#clearDoneBtn");
 const themeToggle = document.querySelector("#themeToggle");
 const exportBtn = document.querySelector("#exportBtn");
 const importBtn = document.querySelector("#importBtn");
 const importFile = document.querySelector("#importFile");
-const pushCloudBtn = document.querySelector("#pushCloudBtn");
-const pullCloudBtn = document.querySelector("#pullCloudBtn");
-const githubOwner = document.querySelector("#githubOwner");
-const githubRepo = document.querySelector("#githubRepo");
-const githubBranch = document.querySelector("#githubBranch");
-const githubPath = document.querySelector("#githubPath");
-const githubToken = document.querySelector("#githubToken");
-const syncStatus = document.querySelector("#syncStatus");
 const calendarTitle = document.querySelector("#calendarTitle");
 const calendarGrid = document.querySelector("#calendarGrid");
 const prevMonthBtn = document.querySelector("#prevMonthBtn");
@@ -36,6 +28,8 @@ const listHint = document.querySelector("#listHint");
 const weekday = document.querySelector("#weekday");
 const todayText = document.querySelector("#todayText");
 
+const DEFAULT_TYPES = ["工作", "学习", "生活", "健康", "其他"];
+
 const formatDate = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -46,6 +40,7 @@ const formatDate = (date) => {
 const today = formatDate(new Date());
 let selectedMonth = new Date();
 let schedules = loadSchedules();
+let typeOptionList = loadTypeOptions();
 
 function loadSchedules() {
   try {
@@ -102,9 +97,45 @@ function normalizeSchedules(data) {
       time: item.time,
       title: item.title,
       note: item.note || "",
-      type: item.type || "其他",
+      type: (item.type || "其他").trim() || "其他",
       done: Boolean(item.done),
     }));
+}
+
+function loadTypeOptions() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TYPE_OPTIONS_KEY));
+    if (Array.isArray(saved) && saved.length) {
+      return Array.from(new Set([...DEFAULT_TYPES, ...saved]));
+    }
+  } catch {
+    // 忽略并回退到默认类型
+  }
+  return [...DEFAULT_TYPES];
+}
+
+function saveTypeOptions() {
+  localStorage.setItem(TYPE_OPTIONS_KEY, JSON.stringify(typeOptionList));
+}
+
+function syncTypeOptions() {
+  const fromSchedules = schedules
+    .map((item) => (item.type || "").trim())
+    .filter(Boolean);
+  typeOptionList = Array.from(
+    new Set([...DEFAULT_TYPES, ...typeOptionList, ...fromSchedules])
+  );
+  renderTypeOptions();
+  saveTypeOptions();
+}
+
+function renderTypeOptions() {
+  typeOptions.innerHTML = "";
+  typeOptionList.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    typeOptions.appendChild(option);
+  });
 }
 
 function saveSchedules() {
@@ -136,51 +167,17 @@ function applyTheme(theme) {
   localStorage.setItem(THEME_KEY, theme);
 }
 
-function initSyncSettings() {
-  try {
-    const settings = JSON.parse(localStorage.getItem(SYNC_SETTINGS_KEY)) || {};
-    githubOwner.value = settings.owner || "XIEFANGYUAN512";
-    githubRepo.value = settings.repo || "DailyPlanner";
-    githubBranch.value = settings.branch || "main";
-    githubPath.value = settings.path || "dailyplanner-data.json";
-  } catch {
-    githubOwner.value = "XIEFANGYUAN512";
-    githubRepo.value = "DailyPlanner";
-    githubBranch.value = "main";
-    githubPath.value = "dailyplanner-data.json";
-  }
-}
-
-function saveSyncSettings() {
-  const settings = getSyncSettings(false);
-  localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify(settings));
-}
-
 function getVisibleSchedules() {
   const selectedDate = filterDate.value || today;
-  const keyword = searchInput.value.trim().toLowerCase();
-  const source = keyword
-    ? schedules
-    : schedules.filter((item) => item.date === selectedDate);
-
-  return source
-    .filter((item) => {
-      if (!keyword) return true;
-      return [item.title, item.note, item.type, item.date, item.time]
-        .join(" ")
-        .toLowerCase()
-        .includes(keyword);
-    })
-    .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+  return schedules
+    .filter((item) => item.date === selectedDate)
+    .sort((a, b) => a.time.localeCompare(b.time));
 }
 
 function renderSchedules() {
   const filtered = getVisibleSchedules();
-  const keyword = searchInput.value.trim();
   itemsContainer.innerHTML = "";
-  listHint.textContent = keyword
-    ? `搜索结果：已在全部日期中查找“${keyword}”`
-    : "按时间从早到晚排列";
+  listHint.textContent = "按时间从早到晚排列";
 
   if (!filtered.length) {
     itemsContainer.appendChild(emptyTemplate.content.cloneNode(true));
@@ -205,11 +202,6 @@ function createScheduleItem(item) {
   const time = document.createElement("div");
   time.className = "item-time";
   time.textContent = item.time;
-
-  const dateMeta = document.createElement("span");
-  dateMeta.className = "item-date";
-  dateMeta.textContent = item.date;
-  time.appendChild(dateMeta);
 
   const content = document.createElement("div");
   const title = document.createElement("p");
@@ -312,24 +304,31 @@ function parseDate(dateString) {
 function addSchedule(event) {
   event.preventDefault();
 
+  const customType = typeInput.value.trim() || "其他";
+
   const newItem = {
     id: crypto.randomUUID(),
     date: dateInput.value,
     time: timeInput.value,
     title: titleInput.value.trim(),
     note: "",
-    type: typeInput.value,
+    type: customType,
     done: false,
   };
 
   schedules.push(newItem);
+  if (!typeOptionList.includes(customType)) {
+    typeOptionList.push(customType);
+    renderTypeOptions();
+    saveTypeOptions();
+  }
   saveSchedules();
   filterDate.value = newItem.date;
   selectedMonth = parseDate(newItem.date);
   form.reset();
   dateInput.value = newItem.date;
   timeInput.value = newItem.time;
-  typeInput.value = newItem.type;
+  typeInput.value = customType;
   titleInput.focus();
   renderSchedules();
 }
@@ -392,6 +391,7 @@ function importSchedules(file) {
 
       const shouldReplace = confirm("是否用导入文件替换当前所有日程？选择“取消”则会合并导入。");
       schedules = shouldReplace ? imported : mergeSchedules(schedules, imported);
+      syncTypeOptions();
       saveSchedules();
       renderSchedules();
       alert("日程导入完成。");
@@ -411,142 +411,11 @@ function mergeSchedules(current, incoming) {
   return Array.from(map.values());
 }
 
-function getCloudPayload() {
-  return {
-    app: "DailyPlanner",
-    version: 1,
-    updatedAt: new Date().toISOString(),
-    schedules,
-  };
-}
-
-function getSyncSettings(includeToken = true) {
-  const settings = {
-    owner: githubOwner.value.trim(),
-    repo: githubRepo.value.trim(),
-    branch: githubBranch.value.trim() || "main",
-    path: githubPath.value.trim() || "dailyplanner-data.json",
-  };
-
-  if (includeToken) {
-    settings.token = githubToken.value.trim();
-  }
-
-  return settings;
-}
-
-function validateSyncSettings(settings) {
-  if (!settings.owner || !settings.repo || !settings.branch || !settings.path || !settings.token) {
-    throw new Error("请完整填写 Owner、仓库名、分支、文件路径和 GitHub Token。");
-  }
-}
-
-function getContentApiUrl(settings) {
-  return `https://api.github.com/repos/${encodeURIComponent(settings.owner)}/${encodeURIComponent(settings.repo)}/contents/${settings.path}`;
-}
-
-function encodeBase64(text) {
-  return btoa(unescape(encodeURIComponent(text)));
-}
-
-function decodeBase64(text) {
-  return decodeURIComponent(escape(atob(text.replace(/\n/g, ""))));
-}
-
-async function fetchRemoteFile(settings) {
-  const response = await fetch(`${getContentApiUrl(settings)}?ref=${encodeURIComponent(settings.branch)}`, {
-    headers: {
-      Authorization: `Bearer ${settings.token}`,
-      Accept: "application/vnd.github+json",
-    },
-  });
-
-  if (response.status === 404) return null;
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || "读取 GitHub 文件失败。");
-  }
-
-  return response.json();
-}
-
-async function pushToGitHub() {
-  const settings = getSyncSettings();
-  try {
-    validateSyncSettings(settings);
-    saveSyncSettings();
-    setSyncStatus("正在上传到 GitHub...");
-
-    const remoteFile = await fetchRemoteFile(settings);
-    const payload = {
-      message: `同步 DailyPlanner 数据 ${new Date().toLocaleString("zh-CN")}`,
-      content: encodeBase64(JSON.stringify(getCloudPayload(), null, 2)),
-      branch: settings.branch,
-    };
-
-    if (remoteFile?.sha) {
-      payload.sha = remoteFile.sha;
-    }
-
-    const response = await fetch(getContentApiUrl(settings), {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${settings.token}`,
-        Accept: "application/vnd.github+json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || "上传 GitHub 失败。");
-    }
-
-    setSyncStatus("已上传到 GitHub 数据文件。");
-  } catch (error) {
-    setSyncStatus(error.message, true);
-  }
-}
-
-async function pullFromGitHub() {
-  const settings = getSyncSettings();
-  try {
-    validateSyncSettings(settings);
-    saveSyncSettings();
-    setSyncStatus("正在从 GitHub 拉取数据...");
-
-    const remoteFile = await fetchRemoteFile(settings);
-    if (!remoteFile?.content) {
-      throw new Error("GitHub 上还没有日程数据文件，请先上传一次。");
-    }
-
-    const remoteData = normalizeSchedules(JSON.parse(decodeBase64(remoteFile.content)));
-    if (!remoteData.length) {
-      throw new Error("GitHub 数据文件中没有可用日程。");
-    }
-
-    const shouldReplace = confirm("是否用 GitHub 数据替换当前所有日程？选择“取消”则会合并。");
-    schedules = shouldReplace ? remoteData : mergeSchedules(schedules, remoteData);
-    saveSchedules();
-    renderSchedules();
-    setSyncStatus("已从 GitHub 拉取并更新本地日程。");
-  } catch (error) {
-    setSyncStatus(error.message, true);
-  }
-}
-
-function setSyncStatus(message, isError = false) {
-  syncStatus.textContent = message;
-  syncStatus.classList.toggle("error", isError);
-}
-
 form.addEventListener("submit", addSchedule);
 filterDate.addEventListener("change", () => {
   selectedMonth = parseDate(filterDate.value || today);
   renderSchedules();
 });
-searchInput.addEventListener("input", renderSchedules);
 showTodayBtn.addEventListener("click", () => {
   filterDate.value = today;
   dateInput.value = today;
@@ -564,11 +433,6 @@ importFile.addEventListener("change", (event) => {
   const [file] = event.target.files;
   if (file) importSchedules(file);
 });
-pushCloudBtn.addEventListener("click", pushToGitHub);
-pullCloudBtn.addEventListener("click", pullFromGitHub);
-[githubOwner, githubRepo, githubBranch, githubPath].forEach((input) => {
-  input.addEventListener("change", saveSyncSettings);
-});
 prevMonthBtn.addEventListener("click", () => {
   selectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1, 1);
   renderCalendar();
@@ -580,6 +444,6 @@ nextMonthBtn.addEventListener("click", () => {
 
 initDateInfo();
 initTheme();
-initSyncSettings();
+syncTypeOptions();
 saveSchedules();
 renderSchedules();
