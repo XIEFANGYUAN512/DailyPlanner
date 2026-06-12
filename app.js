@@ -107,7 +107,8 @@ function loadTypeOptions() {
   try {
     const saved = JSON.parse(localStorage.getItem(TYPE_OPTIONS_KEY));
     if (Array.isArray(saved) && saved.length) {
-      return Array.from(new Set([...DEFAULT_TYPES, ...saved]));
+      const cleaned = saved.filter((value) => value && value !== "其他");
+      return Array.from(new Set([...DEFAULT_TYPES, ...cleaned]));
     }
   } catch {
     // 忽略并回退到默认类型
